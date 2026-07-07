@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Comme ma bite</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 55vw;
+    max-width: 260px;
+    height: 55vw;
+    max-height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff5555, #d32f2f 60%, #8e1c1c 100%);
+    border: 6px solid #6e1414;
+    outline: none;
+    cursor: pointer;
+    box-shadow: 0 8px 0 #6e1414, 0 10px 20px rgba(0,0,0,0.5);
+  }
+  #btn:active {
+    transform: translate(-50%, -48%);
+    box-shadow: 0 3px 0 #6e1414, 0 5px 10px rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body>
+<select id="voiceSelect" style="position:absolute; top:16px; left:16px; right:16px; z-index:2;"></select>
+<button id="btn"></button>
+
+<script>
+  const btn = document.getElementById('btn');
+  const select = document.getElementById('voiceSelect');
+  const phrase = "Comme ma bite !";
+  let frVoices = [];
+
+  const maleNames = ['thomas', 'homme', 'male', 'paul', 'antoine', 'nicolas', 'yannick'];
+
+  function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    frVoices = voices.filter(v => v.lang.startsWith('fr'));
+    select.innerHTML = '';
+    frVoices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = v.name;
+      select.appendChild(opt);
+    });
+    const maleIdx = frVoices.findIndex(v => maleNames.some(n => v.name.toLowerCase().includes(n)));
+    if (maleIdx >= 0) select.value = maleIdx;
+  }
+
+  window.speechSynthesis.getVoices();
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  loadVoices();
+
+  function parler(texte) {
+    if (!('speechSynthesis' in window)) {
+      alert("Synthèse vocale non supportée sur ce navigateur.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(texte);
+    utter.lang = 'fr-FR';
+    utter.rate = 1;
+
+    const picked = frVoices[select.value];
+    if (picked) {
+      utter.voice = picked;
+      utter.pitch = maleNames.some(n => picked.name.toLowerCase().includes(n)) ? 1 : 0.6;
+    }
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  btn.addEventListener('click', () => parler(phrase));
+</script>
+</body>
+</html>
